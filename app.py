@@ -15,9 +15,10 @@ DEFAULT_PROJECTS = {
     'petricode': {
         'name': 'PetriCode',
         'path': '../PetriCode',
-        'start_command': 'python petircode/app.py',
-        'port': 5000,
-        'description': 'PetriCode 主项目'
+        'start_command': 'venv\\Scripts\\python.exe -m petircode.main',
+        'process_name': 'python.exe',
+        'process_args': 'petircode.main',
+        'description': 'PetriCode Telegram Bot'
     }
 }
 
@@ -33,14 +34,15 @@ def save_config(config):
     with open(CONFIG_FILE, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=2, ensure_ascii=False)
 
-def get_process_by_port(port):
-    """通过端口号查找进程"""
-    for proc in psutil.process_iter(['pid', 'name', 'connections']):
+def get_process_by_name_and_args(process_name, process_args):
+    """通过进程名称和参数查找进程"""
+    for proc in psutil.process_iter(['pid', 'name', 'cmdline']):
         try:
-            for conn in proc.connections():
-                if conn.laddr.port == port:
+            if proc.info['name'] and process_name.lower() in proc.info['name'].lower():
+                cmdline = ' '.join(proc.info['cmdline'] or [])
+                if process_args in cmdline:
                     return proc
-        except (psutil.NoSuchProcess, psutil.AccessDenied):
+        except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
             pass
     return None
 
@@ -51,10 +53,11 @@ def check_project_status(project_id):
         return {'status': 'unknown', 'message': '项目不存在'}
 
     project = projects[project_id]
-    port = project.get('port')
+    process_name = project.get('process_name')
+    process_args = project.get('process_args')
 
-    if port:
-        proc = get_process_by_port(port)
+    if process_name and process_args:
+        proc = get_process_by_name_and_args(process_name, process_args)
         if proc:
             try:
                 return {
@@ -138,13 +141,17 @@ def stop_project(project_id):
         return jsonify({'success': False, 'message': '项目未运行'})
 
     try:
-        proc = get_process_by_port(project['port'])
-        if proc:
-            proc.terminate()
-            proc.wait(timeout=5)
-            return jsonify({'success': True, 'message': '项目已停止'})
-        else:
-            return jsonify({'success': False, 'message': '未找到运行的进程'})
+        process_name = project.get('process_name')
+        process_args = project.get('process_args')
+
+        if process_name and process_args:
+            proc = get_process_by_name_and_args(process_name, process_args)
+            if proc:
+                proc.terminate()
+                proc.wait(timeout=5)
+                return jsonify({'success': True, 'message': '项目已停止'})
+
+        return jsonify({'success': False, 'message': '未找到运行的进程'})
     except Exception as e:
         return jsonify({'success': False, 'message': f'停止失败: {str(e)}'})
 
