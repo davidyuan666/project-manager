@@ -1,4 +1,6 @@
-# 项目管理器
+# Project Manager / 项目管理器
+
+Vibe coding by Claude Code - A web-based project manager for monitoring and controlling local projects.
 
 一个简单的 Web 应用，用于管理和监控本地项目的运行状态。
 
@@ -14,7 +16,7 @@
 
 1. 克隆仓库
 ```bash
-git clone <repository-url>
+git clone git@github.com:davidyuan666/project-manager.git
 cd project-manager
 ```
 
