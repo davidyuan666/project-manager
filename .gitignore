@@ -18,7 +18,6 @@ build/
 *.swo
 
 # Project specific
-projects_config.json
 *.log
 
 # OS

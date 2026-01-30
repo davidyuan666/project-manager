@@ -1,0 +1,10 @@
+{
+  "petricode": {
+    "name": "PetriCode",
+    "path": "../PetriCode",
+    "start_command": "venv\\Scripts\\python.exe -m petircode.main",
+    "process_name": "python.exe",
+    "process_args": "petircode.main",
+    "description": "PetriCode Telegram Bot"
+  }
+}
